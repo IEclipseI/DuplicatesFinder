@@ -10,6 +10,7 @@ class MainWindow;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
+    friend class same_file_finder;
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);

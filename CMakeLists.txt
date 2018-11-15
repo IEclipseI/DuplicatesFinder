@@ -3,7 +3,7 @@ project(hw5)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_FLAGS_DEBUG "-o3")
+set(CMAKE_CXX_FLAGS_DEBUG "-Wall -pedantic -o3")
 set(CMAKE_CXX_FLAGS_RELEASE "-o3")
 
 #-fsanitize=address
@@ -22,7 +22,7 @@ include_directories(${Qt5Core_INCLUDE_DIRS})
 add_executable(hw5 main.cpp
         mainwindow.cpp mainwindow.h mainwindow.ui
         confirmdeleting.cpp confirmdeleting.h confirmdeleting.ui
-        stopsearch.cpp stopsearch.h stopsearch.ui)
+        stopsearch.cpp stopsearch.h stopsearch.ui same_file_finder.cpp same_file_finder.h)
 
 target_link_libraries(hw5 Qt5::Widgets)
 target_link_libraries(hw5 Qt5::Core)

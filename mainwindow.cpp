@@ -1,11 +1,17 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "confirmdeleting.h"
+#include "ui_confirmdeleting.h"
+#include "stopsearch.h"
+#include "ui_stopsearch.h"
+
 #include <QDir>
 #include <QFileDialog>
 #include <iostream>
 #include <QDirIterator>
 #include <QCryptographicHash>
 #include <QHash>
+#include <QtCore/QThread>
 
 MainWindow::MainWindow(QWidget *parent) :
         QMainWindow(parent),
@@ -17,6 +23,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->collapseAll, &QPushButton::clicked, this, &MainWindow::collapseAll);
     connect(ui->expandAll, &QPushButton::clicked, this, &MainWindow::expandAll);
     connect(ui->autoselect, &QPushButton::clicked, this, &MainWindow::autoselect);
+    connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::deleteButton);
 
 }
 
@@ -95,6 +102,8 @@ void MainWindow::on_directoryList_itemSelectionChanged() {
 
 void MainWindow::on_searchButton_clicked() {
     ui->duplicates->clear();
+    auto *stopSearchThread = new QThread();
+    auto *stopSearch = new StopSearch();
     QVector<QString> dirList;
     for (int i = 0; i < ui->directoryList->topLevelItemCount(); i++) {
         dirList.push_back(ui->directoryList->topLevelItem(i)->text(1));
@@ -110,7 +119,8 @@ void MainWindow::on_searchButton_clicked() {
               [](QPair<qint64, QString> &a, QPair<qint64, QString> &b) { return a.first < b.first; });
 
     int ind = 0;
-    size_t groupId = 0;
+    size_t groupId = 1;
+    size_t files_found = 0;
     while (ind != files.size()) {
         int j = ind;
         while (j < files.size() && files[j].first == files[ind].first) {
@@ -138,8 +148,10 @@ void MainWindow::on_searchButton_clicked() {
                     }
                 }
             }
+
             for (auto &hashKey : hashToFilesMap) {
                 if (hashKey.size() > 1) {
+                    files_found += hashKey.size();
                     auto *item = new QTreeWidgetItem(ui->duplicates);
                     ui->duplicates->addTopLevelItem(item);
                     for (auto &filePath : hashKey) {
@@ -147,15 +159,28 @@ void MainWindow::on_searchButton_clicked() {
                         itemChild->setText(0, filePath);
                         item->addChild(itemChild);
                     }
-                    item->setText(0, QString::number(groupId++));
+                    item->setText(0, "№" + QString::number(groupId++) + ", " + QString::number(hashKey.size()) +
+                                     " files in group");
                     item->setExpanded(false);
                 }
             }
         }
         ind = j;
     }
+    groupId--;
+
 }
 
 void MainWindow::deleteButton() {
-    ui->duplicates->selectedItems();
+    auto d = new ConfirmDeleting(this);
+    d->ui->label->setText("Are you sure to delete selected files?");
+    if (d->exec() == QDialog::Accepted) {
+        auto selected = ui->duplicates->selectedItems();
+        for (auto &item : selected) {
+            if (item->parent() != nullptr) {
+                if (QFile::remove(item->text(0)))
+                    delete item;
+            }
+        }
+    }
 }

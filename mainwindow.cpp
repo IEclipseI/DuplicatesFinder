@@ -22,10 +22,16 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->removeFromListButton->setEnabled(false);
     ui->directoryList->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     ui->directoryList->header()->setSectionResizeMode(1, QHeaderView::Stretch);
-    connect(ui->collapseAll, &QPushButton::clicked, this, &MainWindow::collapseAll);
-    connect(ui->expandAll, &QPushButton::clicked, this, &MainWindow::expandAll);
-    connect(ui->autoselect, &QPushButton::clicked, this, &MainWindow::autoselect);
-    connect(ui->deleteButton, &QPushButton::clicked, this, &MainWindow::deleteButton);
+    connect(ui->collapseAll, SIGNAL(clicked()), this, SLOT(collapseAll()));
+    connect(ui->expandAll, SIGNAL(clicked()), this, SLOT(expandAll()));
+    connect(ui->autoselect, SIGNAL(clicked()), this, SLOT(autoselect()));
+    connect(ui->deleteButton, SIGNAL(clicked()), this, SLOT(deleteButton()));
+    connect(ui->inputDirectoryName, SIGNAL(textChanged(const QString&)), this, SLOT(inputDirectoryNameTextChanged(const QString &)));
+    connect(ui->chooseDirectoryButton, SIGNAL(clicked()), this, SLOT(chooseDir()));
+    connect(ui->addToSearchButton, SIGNAL(clicked()), this, SLOT(addToSearch()));
+    connect(ui->removeFromListButton, SIGNAL(clicked()), this, SLOT(removeFromList()));
+    connect(ui->directoryList, SIGNAL(itemSelectionChanged()), this, SLOT(directoryListItemSelectionChanged()));
+    connect(ui->searchButton, SIGNAL(clicked()), this, SLOT(search()));
 
 }
 
@@ -55,7 +61,7 @@ void MainWindow::autoselect() {
     }
 }
 
-void MainWindow::on_inputDirectoryName_textChanged(const QString &arg1) {
+void MainWindow::inputDirectoryNameTextChanged(const QString &arg1) {
     if (QDir(arg1).exists()) {
         ui->addToSearchButton->setEnabled(true);
     } else {
@@ -63,12 +69,12 @@ void MainWindow::on_inputDirectoryName_textChanged(const QString &arg1) {
     }
 }
 
-void MainWindow::on_chooseDirectoryButton_clicked() {
+void MainWindow::chooseDir() {
     QString directory = QFileDialog::getExistingDirectory(this);
     if (!directory.isEmpty()) ui->inputDirectoryName->setText(directory);
 }
 
-void MainWindow::on_addToSearchButton_clicked() {
+void MainWindow::addToSearch() {
     for (int i = ui->directoryList->topLevelItemCount() - 1; i >= 0; i--) {
         QTreeWidgetItem *item = ui->directoryList->topLevelItem(i);
         if (item->text(1) == ui->inputDirectoryName->text() ||
@@ -76,11 +82,7 @@ void MainWindow::on_addToSearchButton_clicked() {
             ui->inputDirectoryName->clear();
             return;
         } else if (item->text(1).indexOf(ui->inputDirectoryName->text()) >= 0) {
-            try {
-                delete ui->directoryList->takeTopLevelItem(i);
-            } catch (...) {
-
-            }
+            delete ui->directoryList->takeTopLevelItem(i);
         }
     }
     auto item = new QTreeWidgetItem(ui->directoryList);
@@ -90,19 +92,19 @@ void MainWindow::on_addToSearchButton_clicked() {
     ui->directoryList->addTopLevelItem(item);
 
 
-    ui->statusBar->showMessage("\"" + ui->inputDirectoryName->text() + "\"" + " added to list");
+    ui->statusBar->showMessage("\"" + ui->inputDirectoryName->text() + "\"" + " added to list", 3000);
     ui->inputDirectoryName->clear();
 }
 
-void MainWindow::on_removeFromListButton_clicked() {
+void MainWindow::removeFromList() {
     qDeleteAll(ui->directoryList->selectedItems());
 }
 
-void MainWindow::on_directoryList_itemSelectionChanged() {
+void MainWindow::directoryListItemSelectionChanged() {
     ui->removeFromListButton->setEnabled(ui->directoryList->selectedItems().length() != 0);
 }
 
-void MainWindow::on_searchButton_clicked() {
+void MainWindow::search() {
     ui->duplicates->clear();
     QVector<QString> dirList;
     for (int i = 0; i < ui->directoryList->topLevelItemCount(); i++) {
@@ -112,10 +114,12 @@ void MainWindow::on_searchButton_clicked() {
     auto *finder = new same_file_finder(dirList);
     auto *searchDialog = new SearchDialog(finder_thread, this);
     finder->moveToThread(finder_thread);
-    connect(finder_thread, &QThread::started, finder, &same_file_finder::findDuplicates);
-    connect(finder, &same_file_finder::fileChecked, searchDialog, &SearchDialog::updateBar);
-    connect(finder, &same_file_finder::filesToCheckCounted, searchDialog, &SearchDialog::setBarRange);
+    connect(finder_thread, SIGNAL(started()), finder, SLOT(findDuplicates()));
+    connect(finder, SIGNAL(filesChecked(int)), searchDialog, SLOT(updateBar(int)));
+    connect(finder, SIGNAL(filesToCheckCounted(int)), searchDialog, SLOT(setBarRange(int)));
+
     qRegisterMetaType<QVector<QVector<QString>>>("QVector<QVector<QString>>");
+
     connect(finder, SIGNAL(searchResult(QVector<QVector<QString>>)), this, SLOT(showResults(
             QVector<QVector<QString>>)));
 

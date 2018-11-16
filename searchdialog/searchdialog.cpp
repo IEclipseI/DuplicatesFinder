@@ -7,7 +7,7 @@ SearchDialog::SearchDialog(QThread* searchThread, QWidget *parent) :
     searchThread(searchThread)
 {
     ui->setupUi(this);
-    connect(ui->stopSearchButton, &QPushButton::clicked, this, &SearchDialog::stopSearch);
+    connect(ui->stopSearchButton, SIGNAL(clicked()), this, SLOT(stopSearch()));
     ui->progressBar->setValue(0);
 }
 

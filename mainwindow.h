@@ -17,26 +17,16 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_inputDirectoryName_textChanged(const QString &arg1);
-
-    void on_chooseDirectoryButton_clicked();
-
-    void on_addToSearchButton_clicked();
-
-    void on_removeFromListButton_clicked();
-
-    void on_directoryList_itemSelectionChanged();
-
-    void on_searchButton_clicked();
-
+    void inputDirectoryNameTextChanged(const QString &arg1);
+    void chooseDir();
+    void addToSearch();
+    void removeFromList();
+    void directoryListItemSelectionChanged();
+    void search();
     void collapseAll();
-
     void expandAll();
-
     void autoselect();
-
     void deleteButton();
-
     void showResults(QVector<QVector<QString>>);
 private:
     Ui::MainWindow *ui;

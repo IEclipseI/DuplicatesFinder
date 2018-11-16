@@ -16,17 +16,22 @@ class same_file_finder : public QObject {
 
     friend class MainWindow;
 public:
-    same_file_finder(QVector<QString> &dirList, MainWindow* mW);
+    same_file_finder(QVector<QString> &dirList/*, MainWindow* mW*/, QObject* parent = 0);
 
 public slots:
     void findDuplicates();
 
 signals:
-    void searchEnds();
+    void searchEnds(int);
+    void fileChecked(int percnatage);
+    void filesToCheckCounted(int);
+    void searchResult(QVector<QVector<QString>>);
 
 private:
+    QVector<QVector<QString>> findDuplicatesImpl();
+    void resolveInterruptionRequest();
     QVector<QString> dirList;
-    MainWindow* mW;
+//    MainWindow* mW;
 };
 
 

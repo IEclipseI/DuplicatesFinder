@@ -7,19 +7,19 @@
 
 
 namespace Ui {
-class ConfirmDeleting;
+class ConfirmDeletingDialog;
 }
 
-class ConfirmDeleting : public QDialog
+class ConfirmDeletingDialog : public QDialog
 {
     Q_OBJECT
     friend class MainWindow;
 public:
-    explicit ConfirmDeleting(QWidget *parent = 0);
-    ~ConfirmDeleting();
+    explicit ConfirmDeletingDialog(QWidget *parent = 0);
+    ~ConfirmDeletingDialog();
 
 private:
-    Ui::ConfirmDeleting *ui;
+    Ui::ConfirmDeletingDialog *ui;
 };
 
 #endif // CONFIRMDELETING_H

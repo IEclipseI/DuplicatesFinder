@@ -36,6 +36,8 @@ private slots:
     void autoselect();
 
     void deleteButton();
+
+    void showResults(QVector<QVector<QString>>);
 private:
     Ui::MainWindow *ui;
 };

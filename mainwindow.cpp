@@ -5,13 +5,14 @@
 #include <QCryptographicHash>
 #include <QHash>
 #include <QtCore/QThread>
+#include <QMetaType>
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "confirmdeleting.h"
-#include "ui_confirmdeleting.h"
-#include "stopsearch.h"
-#include "ui_stopsearch.h"
+#include "confirm_deleting_dialog/confirm_deleting_dialog.h"
+#include "confirm_deleting_dialog/ui_confirm_deleting_dialog.h"
+#include "searchdialog/searchdialog.h"
+#include "searchdialog/ui_searchdialog.h"
 #include "same_file_finder.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -107,18 +108,30 @@ void MainWindow::on_searchButton_clicked() {
     for (int i = 0; i < ui->directoryList->topLevelItemCount(); i++) {
         dirList.push_back(ui->directoryList->topLevelItem(i)->text(1));
     }
-    auto* finder_thread = new QThread();
-    auto* finder = new same_file_finder(dirList, this);
-
+    auto *finder_thread = new QThread();
+    auto *finder = new same_file_finder(dirList);
+    auto *searchDialog = new SearchDialog(finder_thread, this);
     finder->moveToThread(finder_thread);
     connect(finder_thread, &QThread::started, finder, &same_file_finder::findDuplicates);
-    connect(finder, &same_file_finder::searchEnds, finder_thread, &QThread::quit);
-    finder_thread->start();
+    connect(finder, &same_file_finder::fileChecked, searchDialog, &SearchDialog::updateBar);
+    connect(finder, &same_file_finder::filesToCheckCounted, searchDialog, &SearchDialog::setBarRange);
+    qRegisterMetaType<QVector<QVector<QString>>>("QVector<QVector<QString>>");
+    connect(finder, SIGNAL(searchResult(QVector<QVector<QString>>)), this, SLOT(showResults(
+            QVector<QVector<QString>>)));
 
+    connect(finder, SIGNAL(searchEnds(int)), finder_thread, SLOT(quit()));
+    connect(finder, SIGNAL(searchEnds(int)), searchDialog, SLOT(done(int)));
+    connect(finder, SIGNAL(searchEnds(int)), finder, SLOT(deleteLater()));
+    connect(finder_thread, SIGNAL(finished()), finder_thread, SLOT(deleteLater()));
+    finder_thread->start();
+    if (searchDialog->exec() == QDialog::Rejected) {
+        searchDialog->stopSearch();
+    }
+    delete searchDialog;
 }
 
 void MainWindow::deleteButton() {
-    auto d = new ConfirmDeleting(this);
+    auto d = new ConfirmDeletingDialog(this);
     d->ui->label->setText("Are you sure to delete selected files?");
     if (d->exec() == QDialog::Accepted) {
         auto selected = ui->duplicates->selectedItems();
@@ -129,4 +142,23 @@ void MainWindow::deleteButton() {
             }
         }
     }
+}
+
+void MainWindow::showResults(QVector<QVector<QString>> groups) {
+    int groupId = 1;
+    int duplCount = 0;
+    for (auto group : groups) {
+        auto *item = new QTreeWidgetItem(ui->duplicates);
+        ui->duplicates->addTopLevelItem(item);
+        duplCount += group.size();
+        for (auto &filePath : group) {
+            QTreeWidgetItem *itemChild = new QTreeWidgetItem(item);
+            itemChild->setText(0, filePath);
+            item->addChild(itemChild);
+        }
+        item->setText(0, "№" + QString::number(groupId++).append(", ").append(QString::number(group.size())).append(
+                " files in group"));
+        item->setExpanded(false);
+    }
+    ui->statusBar->showMessage(QString::number(duplCount).append(" files are founded"));
 }

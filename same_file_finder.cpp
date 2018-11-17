@@ -10,10 +10,10 @@
 #include "same_file_finder.h"
 #include <openssl/sha.h>
 
-same_file_finder::same_file_finder(QVector<QString> &dirList, QObject* parent): QObject(parent), dirList(dirList) {}
+same_file_finder::same_file_finder(QVector<QString> &dirList, QObject *parent) : QObject(parent), dirList(dirList) {}
 
 void same_file_finder::resolveInterruptionRequest() {
-    if(QThread::currentThread()->isInterruptionRequested())
+    if (QThread::currentThread()->isInterruptionRequested())
         throw std::exception();
 }
 
@@ -23,7 +23,7 @@ void same_file_finder::findDuplicates() {
     emit searchEnds(QDialog::Accepted);
 }
 
-QVector<QVector<QString>> same_file_finder::findDuplicatesImpl(){
+QVector<QVector<QString>> same_file_finder::findDuplicatesImpl() {
     QVector<QVector<QString>> groups;
     try {
         QVector<QPair<qint64, QString>> files;
@@ -38,7 +38,7 @@ QVector<QVector<QString>> same_file_finder::findDuplicatesImpl(){
         std::sort(files.begin(), files.end(),
                   [](QPair<qint64, QString> &a, QPair<qint64, QString> &b) { return a.first > b.first; });
         int ind = 0;
-        size_t groupId = 1;
+        size_t groupId = 1u;
         while (ind != files.size()) {
             resolveInterruptionRequest();
             int j = ind;

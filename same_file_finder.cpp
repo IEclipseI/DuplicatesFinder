@@ -36,7 +36,7 @@ QVector<QVector<QString>> same_file_finder::findDuplicatesImpl(){
         }
         emit filesToCheckCounted(files.size());
         std::sort(files.begin(), files.end(),
-                  [](QPair<qint64, QString> &a, QPair<qint64, QString> &b) { return a.first < b.first; });
+                  [](QPair<qint64, QString> &a, QPair<qint64, QString> &b) { return a.first > b.first; });
         int ind = 0;
         size_t groupId = 1;
         while (ind != files.size()) {

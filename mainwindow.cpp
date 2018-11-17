@@ -40,16 +40,11 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::collapseAll() {
-    for (int i = 0; i < ui->duplicates->topLevelItemCount(); ++i) {
-        ui->duplicates->topLevelItem(i)->setExpanded(false);
-    }
-
+    ui->duplicates->collapseAll();
 }
 
 void MainWindow::expandAll() {
-    for (int i = 0; i < ui->duplicates->topLevelItemCount(); ++i) {
-        ui->duplicates->topLevelItem(i)->setExpanded(true);
-    }
+    ui->duplicates->expandAll();
 }
 
 void MainWindow::autoselect() {

@@ -30,11 +30,9 @@ QVector<QVector<QString>> same_file_finder::findDuplicatesImpl() {
         for (auto &directory : dirList) {
             QDirIterator it(directory, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
             while (it.hasNext()) {
-                auto size = it.fileInfo().size();
+                auto file = it.next();
                 if(!it.fileInfo().isSymLink())
-                    files.push_back(QPair<qint64, QString>(size, it.next()));
-                else
-                    it.next();
+                    files.push_back(QPair<qint64, QString>(it.fileInfo().size(), file));
                 resolveInterruptionRequest();
             }
         }

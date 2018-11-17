@@ -12,6 +12,7 @@ set(CMAKE_PREFIX_PATH "/home/roman/Qt/5.11.2/gcc_64/lib")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTOUIC ON)
+
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(OpenSSL REQUIRED)

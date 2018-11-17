@@ -70,20 +70,22 @@ void MainWindow::chooseDir() {
 }
 
 void MainWindow::addToSearch() {
+    auto dir_path = QDir(ui->inputDirectoryName->text()).absolutePath();
     for (int i = ui->directoryList->topLevelItemCount() - 1; i >= 0; i--) {
         QTreeWidgetItem *item = ui->directoryList->topLevelItem(i);
-        if (item->text(1) == ui->inputDirectoryName->text() ||
-            ui->inputDirectoryName->text().indexOf(item->text(1)) >= 0) {
+        auto item_path = QDir(item->text(1)).absolutePath();
+        if (item_path == dir_path ||
+            dir_path.indexOf(item_path) == 0) {
             ui->inputDirectoryName->clear();
             return;
-        } else if (item->text(1).indexOf(ui->inputDirectoryName->text()) >= 0) {
+        } else if (item_path.indexOf(dir_path) >= 0 ) {
             delete ui->directoryList->takeTopLevelItem(i);
         }
     }
     auto item = new QTreeWidgetItem(ui->directoryList);
     QDir d(ui->inputDirectoryName->text());
     item->setText(0, d.dirName());
-    item->setText(1, d.path());
+    item->setText(1, d.absolutePath());
     ui->directoryList->addTopLevelItem(item);
 
 

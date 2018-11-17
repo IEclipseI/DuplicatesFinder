@@ -31,7 +31,7 @@ QVector<QVector<QString>> same_file_finder::findDuplicatesImpl() {
             QDirIterator it(directory, QDir::Files | QDir::NoDotAndDotDot, QDirIterator::Subdirectories);
             while (it.hasNext()) {
                 auto size = it.fileInfo().size();
-                if(it.fileInfo().isSymLink())
+                if(!it.fileInfo().isSymLink())
                     files.push_back(QPair<qint64, QString>(size, it.next()));
                 else
                     it.next();
